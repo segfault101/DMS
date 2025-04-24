@@ -20,4 +20,4 @@ class ClaimOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True  # allows SQLAlchemy model to be converted to Pydantic
+        from_attributes = True  # allows SQLAlchemy model to be converted to Pydantic

@@ -47,24 +47,13 @@ def parse_edi_835_file(input_file: str):
         elif seg_id == 'REF' and elements[1] == 'TJ':
             current_claim['Payee_Tax_ID'] = elements[2]
         elif seg_id == 'CLP':
-            current_claim['Claim_Control_Number'] = elements[1]
-            current_claim['Claim_Status_Code'] = elements[2]
-            current_claim['Total_Claim_Charge_Amount'] = elements[3]
-            current_claim['Claim_Payment_Amount'] = elements[4]
-            current_claim['Payer_Claim_Control_Number'] = elements[7] if len(elements) > 7 else ''
-            current_claim['Other_Claim_ID'] = elements[9] if len(elements) > 9 else ''
-        elif seg_id == 'DTM' and elements[1] in ('232', '050'):
-            label = 'Service_Date' if elements[1] == '232' else 'Payment_Date'
-            current_claim[label] = normalize_date(elements[2])
-        elif seg_id == 'SVC':
-            # Save claim on each SVC line
             claim = Claim(
-                claim_control_number=current_claim.get("Claim_Control_Number"),
-                claim_status_code=current_claim.get("Claim_Status_Code"),
-                total_claim_charge_amount=current_claim.get("Total_Claim_Charge_Amount"),
-                claim_payment_amount=current_claim.get("Claim_Payment_Amount"),
-                payer_claim_control_number=current_claim.get("Payer_Claim_Control_Number"),
-                other_claim_id=current_claim.get("Other_Claim_ID"),
+                claim_control_number=elements[1],
+                claim_status_code=elements[2],
+                total_claim_charge_amount=elements[3],
+                claim_payment_amount=elements[4],
+                payer_claim_control_number=elements[7] if len(elements) > 7 else '',
+                other_claim_id=elements[9] if len(elements) > 9 else '',
                 payer_name=current_claim.get("Payer_Name"),
                 payer_id=current_claim.get("Payer_ID"),
                 payee_name=current_claim.get("Payee_Name"),
@@ -72,9 +61,12 @@ def parse_edi_835_file(input_file: str):
                 payment_date=current_claim.get("Payment_Date"),
                 trace_number=current_claim.get("Trace_Number"),
                 service_date=current_claim.get("Service_Date"),
-                production_date=current_claim.get("Production_Date")
+                production_date=current_claim.get("Production_Date"),
             )
             claims.append(claim)
+        elif seg_id == 'DTM' and elements[1] in ('232', '050'):
+            label = 'Service_Date' if elements[1] == '232' else 'Payment_Date'
+            current_claim[label] = normalize_date(elements[2])
 
     return claims
 
