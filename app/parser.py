@@ -75,5 +75,12 @@ def parse_directory_edi_files(input_dir: str, db: Session):
         if filename.lower().endswith('.rmt'):
             filepath = os.path.join(input_dir, filename)
             claims = parse_edi_835_file(filepath)
-            db.add_all(claims)
+            for claim in claims:
+                exists = db.query(Claim).filter_by(
+                    payer_claim_control_number=claim.payer_claim_control_number,
+                    trace_number=claim.trace_number,
+                    claim_control_number=claim.claim_control_number
+                ).first()
+                if not exists:
+                    db.add(claim)
     db.commit()

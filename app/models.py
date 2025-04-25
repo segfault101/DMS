@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, UniqueConstraint
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
 Base = declarative_base()
@@ -7,7 +7,7 @@ Base = declarative_base()
 class Claim(Base):
     __tablename__ = "claims"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)  # Keep this as is unless you want to change it too
 
     claim_control_number = Column(String)
     claim_status_code = Column(String)
@@ -36,3 +36,20 @@ class Claim(Base):
             name="uq_claim_identity"
         ),
     )
+
+class Worker(Base):
+    __tablename__ = "workers"
+
+    id = Column(Integer, primary_key=True, index=True)  # worker id
+    name = Column(String, unique=True, nullable=False)  # worker name is unique
+
+    assignments = relationship("WorkerAssignment", back_populates="worker")  # relationship to worker assignments
+
+class WorkerAssignment(Base):
+    __tablename__ = "worker_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    worker_id = Column(Integer, ForeignKey("workers.id"), nullable=False)  # Foreign key to Worker id
+    trace_number = Column(String, unique=True, nullable=False)
+
+    worker = relationship("Worker", back_populates="assignments")  # relationship to Worker
