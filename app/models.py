@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, UniqueConstraint
+# src/app/models.py
+
+from sqlalchemy import Column, String, Date, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
@@ -7,8 +9,7 @@ Base = declarative_base()
 class Claim(Base):
     __tablename__ = "claims"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)  # Keep this as is unless you want to change it too
-
+    id = Column(String, primary_key=True)  # Auto-generated internally or you can keep Integer
     claim_control_number = Column(String)
     claim_status_code = Column(String)
     total_claim_charge_amount = Column(String)
@@ -40,16 +41,14 @@ class Claim(Base):
 class Worker(Base):
     __tablename__ = "workers"
 
-    id = Column(Integer, primary_key=True, index=True)  # worker id
-    name = Column(String, unique=True, nullable=False)  # worker name is unique
-
-    assignments = relationship("WorkerAssignment", back_populates="worker")  # relationship to worker assignments
+    name = Column(String, primary_key=True, unique=True, nullable=False)  # ✅ Name is now the PK and unique
+    assignments = relationship("WorkerAssignment", back_populates="worker", cascade="all, delete")
 
 class WorkerAssignment(Base):
     __tablename__ = "worker_assignments"
 
-    id = Column(Integer, primary_key=True, index=True)
-    worker_id = Column(Integer, ForeignKey("workers.id"), nullable=False)  # Foreign key to Worker id
+    id = Column(String, primary_key=True)
+    worker_name = Column(String, ForeignKey("workers.name", ondelete="CASCADE"), nullable=False)  # ✅ worker_name as FK
     trace_number = Column(String, unique=True, nullable=False)
 
-    worker = relationship("Worker", back_populates="assignments")  # relationship to Worker
+    worker = relationship("Worker", back_populates="assignments")

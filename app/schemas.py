@@ -1,7 +1,10 @@
-from datetime import date, datetime
-from pydantic import BaseModel
-from typing import List, Optional
+# src/app/schemas.py
 
+from datetime import date, datetime
+from typing import List, Optional
+from pydantic import BaseModel
+
+# --- Claims ---
 
 class ClaimOut(BaseModel):
     id: int
@@ -25,8 +28,7 @@ class ClaimOut(BaseModel):
         from_attributes = True
 
 
-
-# --- Worker and Assignment ---
+# --- Workers and Assignments ---
 
 class WorkerBase(BaseModel):
     name: str
@@ -38,19 +40,17 @@ class WorkerOut(WorkerBase):
     class Config:
         from_attributes = True
 
-
 class WorkerAssignmentBase(BaseModel):
     trace_number: str
 
 class WorkerAssignmentCreate(BaseModel):
-    worker_id: int  # worker id instead of worker_name
+    worker_name: str        # ✅ we now send worker_name (not id)
     trace_numbers: List[str]
 
-
 class WorkerAssignmentOut(BaseModel):
-    id: int
+    id: str
     trace_number: str
-    worker_id: int  # include worker_id in the output
+    worker_name: str
 
     class Config:
         from_attributes = True

@@ -1,43 +1,45 @@
+// src/components/AssignTraceForm.tsx
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const AssignTraceForm: React.FC = () => {
-  const [workerName, setWorkerName] = useState<string>("");
-  const [traceNumber, setTraceNumber] = useState<string>("");
   const [workers, setWorkers] = useState<any[]>([]);
-  const [error, setError] = useState<string>("");
+  const [selectedWorkerName, setSelectedWorkerName] = useState<string>("");
+  const [traceNumber, setTraceNumber] = useState("");
 
-  // Fetch workers on component mount
+  const fetchWorkers = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/workers");
+      setWorkers(res.data);
+    } catch (error) {
+      console.error("Failed to fetch workers:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchWorkers = async () => {
-      try {
-        const res = await axios.get("http://localhost:8000/workers");
-        setWorkers(res.data);
-      } catch (err) {
-        setError("Failed to load workers");
-      }
-    };
     fetchWorkers();
   }, []);
 
-  // Handle assignment of trace number
-  const handleAssignTraceNumber = async () => {
-    if (!workerName || !traceNumber.trim()) {
-      setError("Both worker name and trace number are required.");
+  const handleAssign = async () => {
+    if (!selectedWorkerName || !traceNumber.trim()) {
+      alert("Please select a worker and enter a trace number.");
       return;
     }
 
+    const payload = {
+      worker_name: selectedWorkerName,               // ✅ send worker_name now
+      trace_numbers: [traceNumber.trim()],
+    };
+
     try {
-      const response = await axios.post("http://localhost:8000/assignments", {
-        worker_name: workerName,
-        trace_number: traceNumber,
-      });
-      setError("");
-      setWorkerName("");
+      await axios.post("http://localhost:8000/assignments", payload);
+      alert(`Assigned trace number to ${selectedWorkerName} successfully!`);
       setTraceNumber("");
-      alert("Trace number assigned successfully!");
-    } catch (err) {
-      setError("Failed to assign trace number.");
+      setSelectedWorkerName("");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to assign trace number.");
     }
   };
 
@@ -45,36 +47,34 @@ const AssignTraceForm: React.FC = () => {
     <div style={{ marginTop: "2rem" }}>
       <h2>Assign Trace Number</h2>
 
-      <div>
-        <label htmlFor="workerName">Worker Name:</label>
-        <select
-          id="workerName"
-          value={workerName}
-          onChange={(e) => setWorkerName(e.target.value)}
-        >
-          <option value="">Select Worker</option>
-          {workers.map((worker) => (
-            <option key={worker.id} value={worker.name}>
-              {worker.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Dropdown to select worker */}
+      <select
+        value={selectedWorkerName}
+        onChange={(e) => setSelectedWorkerName(e.target.value)}
+      >
+        <option value="">Select a worker</option>
+        {workers.map((worker) => (
+          <option key={worker.name} value={worker.name}>
+            {worker.name}
+          </option>
+        ))}
+      </select>
 
-      <div>
-        <label htmlFor="traceNumber">Trace Number:</label>
-        <input
-          type="text"
-          id="traceNumber"
-          value={traceNumber}
-          onChange={(e) => setTraceNumber(e.target.value)}
-          placeholder="Enter trace number"
-        />
-      </div>
+      {/* Input for trace number */}
+      <input
+        value={traceNumber}
+        onChange={(e) => setTraceNumber(e.target.value)}
+        placeholder="Enter trace number"
+        style={{ marginLeft: "1rem", width: "300px" }}
+      />
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <button onClick={handleAssignTraceNumber}>Assign Trace Number</button>
+      <button
+        onClick={handleAssign}
+        style={{ marginLeft: "1rem" }}
+        disabled={!selectedWorkerName || !traceNumber.trim()}
+      >
+        Assign
+      </button>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 interface ClaimTableProps {
-  refreshTrigger: number; // Pass a counter from parent
+  refreshTrigger: boolean; // Pass a counter from parent
 }
 
 const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
