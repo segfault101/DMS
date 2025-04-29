@@ -22,6 +22,7 @@ class ClaimOut(BaseModel):
     trace_number: Optional[str] = None
     service_date: Optional[date] = None
     production_date: Optional[date] = None
+    cas_info: Optional[str] = None
     created_at: datetime
 
     class Config:

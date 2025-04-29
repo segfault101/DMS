@@ -33,8 +33,8 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
             <th>Total Charge</th>
             <th>Payment</th>
             <th>Payer Claim #</th>
+            <th>CAS Info</th>
             <th>Trace #</th>
-            {/* Add more columns if needed */}
           </tr>
         </thead>
         <tbody>
@@ -45,6 +45,7 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
               <td>{claim.total_claim_charge_amount}</td>
               <td>{claim.claim_payment_amount}</td>
               <td>{claim.payer_claim_control_number}</td>
+              <td>{claim.cas_info || "-"}</td>
               <td>{claim.trace_number}</td>
             </tr>
           ))}

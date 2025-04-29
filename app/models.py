@@ -9,7 +9,7 @@ Base = declarative_base()
 class Claim(Base):
     __tablename__ = "claims"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)  # Auto-generated internally or you can keep Integer
+    id = Column(Integer, primary_key=True, autoincrement=True)
     claim_control_number = Column(String)
     claim_status_code = Column(String)
     total_claim_charge_amount = Column(String)
@@ -28,6 +28,8 @@ class Claim(Base):
     production_date = Column(Date)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    cas_info = Column(String, nullable=True)  # <<< New field to store CAS adjustments
 
     __table_args__ = (
         UniqueConstraint(
