@@ -1,6 +1,6 @@
 // src/App.tsx
 
-import React, { useState, ChangeEvent, useRef } from "react";
+import { useState, ChangeEvent, useRef } from "react";
 import axios from "axios";
 import ClaimTable from "./components/ClaimTable";
 import AddWorkerForm from "./components/AddWorkerForm";

@@ -1,18 +1,25 @@
-// src/components/ClaimTable.tsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 interface ClaimTableProps {
-  refreshTrigger: boolean; // Pass a counter from parent
+  refreshTrigger: boolean;
 }
 
 const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
   const [claims, setClaims] = useState<any[]>([]);
+  const [notes, setNotes] = useState<{ [id: number]: string }>({});
 
   const fetchClaims = async () => {
     try {
       const res = await axios.get("http://localhost:8000/claims");
       setClaims(res.data);
+
+      // ✅ Initialize notes from API response
+      const notesMap: { [id: number]: string } = {};
+      res.data.forEach((claim: any) => {
+        notesMap[claim.id] = claim.note || "";
+      });
+      setNotes(notesMap);
     } catch (error) {
       console.error("Failed to fetch claims:", error);
     }
@@ -20,7 +27,21 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
 
   useEffect(() => {
     fetchClaims();
-  }, [refreshTrigger]); // Whenever refreshTrigger changes, re-fetch
+  }, [refreshTrigger]);
+
+  const handleNoteChange = (id: number, value: string) => {
+    setNotes((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSaveNote = async (id: number) => {
+    const note = notes[id] || "";
+    try {
+      await axios.put(`http://localhost:8000/claims/${id}/note`, { note });
+      console.log(`Saved note for claim ${id}:`, note);
+    } catch (error) {
+      console.error("Failed to save note:", error);
+    }
+  };
 
   return (
     <div style={{ marginTop: "2rem" }}>
@@ -35,6 +56,8 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
             <th>Payer Claim #</th>
             <th>CAS Info</th>
             <th>Trace #</th>
+            <th>Notes</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -47,6 +70,16 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
               <td>{claim.payer_claim_control_number}</td>
               <td>{claim.cas_info || "-"}</td>
               <td>{claim.trace_number}</td>
+              <td>
+                <input
+                  type="text"
+                  value={notes[claim.id] || ""}
+                  onChange={(e) => handleNoteChange(claim.id, e.target.value)}
+                />
+              </td>
+              <td>
+                <button onClick={() => handleSaveNote(claim.id)}>Save</button>
+              </td>
             </tr>
           ))}
         </tbody>

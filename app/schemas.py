@@ -24,10 +24,13 @@ class ClaimOut(BaseModel):
     production_date: Optional[date] = None
     cas_info: Optional[str] = None
     created_at: datetime
+    note: Optional[str] = None
 
     class Config:
         from_attributes = True
 
+class ClaimNoteUpdate(BaseModel):
+    note: str
 
 # --- Workers and Assignments ---
 

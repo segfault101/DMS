@@ -5,13 +5,15 @@ from typing import List
 
 from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from .database import SessionLocal, engine
 from .models import Base, Claim, WorkerAssignment, Worker
 from .parser import parse_directory_edi_files
-from .schemas import ClaimOut, WorkerCreate, WorkerOut, WorkerAssignmentCreate, WorkerAssignmentOut
+from .schemas import ClaimOut, WorkerCreate, WorkerOut, WorkerAssignmentCreate, WorkerAssignmentOut, ClaimNoteUpdate
 
 app = FastAPI()
 
@@ -28,7 +30,7 @@ def get_db():
     finally:
         db.close()
 
-# CORS
+# CORS Middleware (still useful if you keep some separate frontends in future)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,6 +38,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static frontend files
+app.mount("/static", StaticFiles(directory="frontend/dist/assets"), name="static")
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse("frontend/dist/index.html")
 
 # Upload EDI files
 @app.post("/upload")
@@ -58,11 +67,20 @@ async def upload_files(
 # Get all claims
 @app.get("/claims", response_model=List[ClaimOut])
 def get_claims(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    claims = db.query(Claim).offset(skip).limit(limit).all()
+    claims = db.query(Claim).order_by(Claim.trace_number.asc()).offset(skip).limit(limit).all()
     return claims
 
-# Worker Endpoints
+@app.put("/claims/{claim_id}/note")
+def update_claim_note(claim_id: int, data: ClaimNoteUpdate, db: Session = Depends(get_db)):
+    claim = db.query(Claim).filter(Claim.id == claim_id).first()
+    if not claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    
+    claim.note = data.note
+    db.commit()
+    return {"message": "Note updated"}
 
+# Worker Endpoints
 @app.post("/workers", response_model=WorkerOut)
 def create_worker(worker: WorkerCreate, db: Session = Depends(get_db)):
     new_worker = Worker(name=worker.name)
@@ -90,7 +108,6 @@ def delete_worker(name: str, db: Session = Depends(get_db)):
     return worker
 
 # Assignment Endpoints
-
 @app.post("/assignments")
 def assign_worker(data: WorkerAssignmentCreate, db: Session = Depends(get_db)):
     worker = db.query(Worker).filter_by(name=data.worker_name).first()
@@ -101,9 +118,9 @@ def assign_worker(data: WorkerAssignmentCreate, db: Session = Depends(get_db)):
         existing = db.query(WorkerAssignment).filter_by(trace_number=trace).first()
         if existing:
             raise HTTPException(status_code=400, detail=f"Trace number {trace} already assigned")
-        
+
         assignment = WorkerAssignment(
-            id=str(worker.name) + "-" + trace,    # simple id generation
+            id=str(worker.name) + "-" + trace,
             worker_name=worker.name,
             trace_number=trace
         )

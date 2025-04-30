@@ -26,10 +26,11 @@ class Claim(Base):
     trace_number = Column(String)
     service_date = Column(Date)
     production_date = Column(Date)
+    cas_info = Column(String, nullable=True)  # <<< New field to store CAS adjustments
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    cas_info = Column(String, nullable=True)  # <<< New field to store CAS adjustments
+    note = Column(String, nullable=True)
 
     __table_args__ = (
         UniqueConstraint(
