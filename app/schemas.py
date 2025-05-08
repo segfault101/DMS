@@ -25,12 +25,18 @@ class ClaimOut(BaseModel):
     cas_info: Optional[str] = None
     created_at: datetime
     note: Optional[str] = None
+    work_status: Optional[str] = None
+
 
     class Config:
         from_attributes = True
 
 class ClaimNoteUpdate(BaseModel):
     note: str
+
+class ClaimWorkStatusUpdate(BaseModel):
+    work_status: str
+
 
 # --- Workers and Assignments ---
 
@@ -45,16 +51,16 @@ class WorkerOut(WorkerBase):
         from_attributes = True
 
 class WorkerAssignmentBase(BaseModel):
-    trace_number: str
+    claim_control_number: str
 
 class WorkerAssignmentCreate(BaseModel):
-    worker_name: str        # ✅ we now send worker_name (not id)
-    trace_numbers: List[str]
+    worker_name: str
+    claim_control_numbers: List[str]
 
 class WorkerAssignmentOut(BaseModel):
     id: str
-    trace_number: str
     worker_name: str
+    claim_control_number: str
 
     class Config:
         from_attributes = True

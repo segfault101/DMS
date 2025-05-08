@@ -31,6 +31,8 @@ class Claim(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     note = Column(String, nullable=True)
+    
+    work_status = Column(String, nullable=True)
 
     __table_args__ = (
         UniqueConstraint(
@@ -52,6 +54,6 @@ class WorkerAssignment(Base):
 
     id = Column(String, primary_key=True)
     worker_name = Column(String, ForeignKey("workers.name", ondelete="CASCADE"), nullable=False)
-    trace_number = Column(String, unique=True, nullable=False)
+    claim_control_number = Column(String, nullable=False)
 
     worker = relationship("Worker", back_populates="assignments")

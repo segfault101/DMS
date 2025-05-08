@@ -26,14 +26,14 @@ const AssignmentTable: React.FC = () => {
         <thead>
           <tr>
             <th>Worker Name</th>
-            <th>Trace Number</th>
+            <th>Claim Number</th>
           </tr>
         </thead>
         <tbody>
           {assignments.map((assignment) => (
             <tr key={assignment.id}>
               <td>{assignment.worker_name}</td>
-              <td>{assignment.trace_number}</td>
+              <td>{assignment.claim_control_number}</td>
             </tr>
           ))}
         </tbody>

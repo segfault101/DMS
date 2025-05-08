@@ -5,21 +5,38 @@ interface ClaimTableProps {
   refreshTrigger: boolean;
 }
 
+const workStatusOptions = [
+  "",
+  "in process",
+  "coding review",
+  "appeal done",
+  "need medical records",
+  "need authorization",
+  "referral required",
+  "insurance expired",
+  "provider out of network",
+];
+
 const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
   const [claims, setClaims] = useState<any[]>([]);
   const [notes, setNotes] = useState<{ [id: number]: string }>({});
+  const [workStatuses, setWorkStatuses] = useState<{ [id: number]: string }>({});
 
   const fetchClaims = async () => {
     try {
       const res = await axios.get("http://localhost:8000/claims");
       setClaims(res.data);
 
-      // ✅ Initialize notes from API response
       const notesMap: { [id: number]: string } = {};
+      const statusMap: { [id: number]: string } = {};
+
       res.data.forEach((claim: any) => {
         notesMap[claim.id] = claim.note || "";
+        statusMap[claim.id] = claim.work_status || "";
       });
+
       setNotes(notesMap);
+      setWorkStatuses(statusMap);
     } catch (error) {
       console.error("Failed to fetch claims:", error);
     }
@@ -43,6 +60,16 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
     }
   };
 
+  const handleSaveWorkStatus = async (id: number) => {
+    const work_status = workStatuses[id] || "";
+    try {
+      await axios.put(`http://localhost:8000/claims/${id}/work_status`, { work_status });
+      console.log(`Saved work status for claim ${id}:`, work_status);
+    } catch (error) {
+      console.error("Failed to save work status:", error);
+    }
+  };
+
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2>Parsed Claims</h2>
@@ -50,14 +77,16 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
         <thead>
           <tr>
             <th>Claim #</th>
-            <th>Status</th>
+            <th>Claim Status</th>
             <th>Total Charge</th>
             <th>Payment</th>
             <th>Payer Claim #</th>
             <th>CAS Info</th>
             <th>Trace #</th>
             <th>Notes</th>
-            <th>Action</th>
+            <th>Save Note</th>
+            <th>Work Status</th>
+            <th>Save Status</th>
           </tr>
         </thead>
         <tbody>
@@ -78,7 +107,27 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger }) => {
                 />
               </td>
               <td>
-                <button onClick={() => handleSaveNote(claim.id)}>Save</button>
+                <button onClick={() => handleSaveNote(claim.id)}>Save Note</button>
+              </td>
+              <td>
+                <select
+                  value={workStatuses[claim.id] || ""}
+                  onChange={(e) =>
+                    setWorkStatuses((prev) => ({
+                      ...prev,
+                      [claim.id]: e.target.value,
+                    }))
+                  }
+                >
+                  {workStatusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td>
+                <button onClick={() => handleSaveWorkStatus(claim.id)}>Save Status</button>
               </td>
             </tr>
           ))}

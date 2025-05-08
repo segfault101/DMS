@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from .database import SessionLocal, engine
 from .models import Base, Claim, WorkerAssignment, Worker
 from .parser import parse_directory_edi_files
-from .schemas import ClaimOut, WorkerCreate, WorkerOut, WorkerAssignmentCreate, WorkerAssignmentOut, ClaimNoteUpdate
+from .schemas import ClaimOut, WorkerCreate, WorkerOut, WorkerAssignmentCreate, WorkerAssignmentOut, ClaimNoteUpdate, ClaimWorkStatusUpdate
 
 app = FastAPI()
 
@@ -80,6 +80,17 @@ def update_claim_note(claim_id: int, data: ClaimNoteUpdate, db: Session = Depend
     db.commit()
     return {"message": "Note updated"}
 
+@app.put("/claims/{claim_id}/work_status")
+def update_claim_work_status(claim_id: int, data: ClaimWorkStatusUpdate, db: Session = Depends(get_db)):
+    claim = db.query(Claim).filter(Claim.id == claim_id).first()
+    if not claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+
+    claim.work_status = data.work_status
+    db.commit()
+    return {"message": "Work status updated"}
+
+
 # Worker Endpoints
 @app.post("/workers", response_model=WorkerOut)
 def create_worker(worker: WorkerCreate, db: Session = Depends(get_db)):
@@ -114,31 +125,37 @@ def assign_worker(data: WorkerAssignmentCreate, db: Session = Depends(get_db)):
     if not worker:
         raise HTTPException(status_code=404, detail="Worker not found")
 
-    for trace in data.trace_numbers:
-        existing = db.query(WorkerAssignment).filter_by(trace_number=trace).first()
+    for control_number in data.claim_control_numbers:
+        # Optional: check if this claim_control_number exists in claims
+        claim = db.query(Claim).filter_by(claim_control_number=control_number).first()
+        if not claim:
+            raise HTTPException(status_code=404, detail=f"Claim {control_number} not found")
+
+        existing = db.query(WorkerAssignment).filter_by(claim_control_number=control_number).first()
         if existing:
-            raise HTTPException(status_code=400, detail=f"Trace number {trace} already assigned")
+            raise HTTPException(status_code=400, detail=f"Claim {control_number} already assigned")
 
         assignment = WorkerAssignment(
-            id=str(worker.name) + "-" + trace,
-            worker_name=worker.name,
-            trace_number=trace
+            id=f"{data.worker_name}-{control_number}",
+            worker_name=data.worker_name,
+            claim_control_number=control_number,
         )
         db.add(assignment)
 
     db.commit()
-    return {"message": f"Assigned {data.worker_name} to trace numbers: {data.trace_numbers}"}
+    return {"message": f"Assigned {data.worker_name} to claims: {data.claim_control_numbers}"}
+
 
 @app.get("/assignments", response_model=List[WorkerAssignmentOut])
 def get_assignments(db: Session = Depends(get_db)):
     return db.query(WorkerAssignment).all()
 
 @app.delete("/assignments")
-def delete_assignment(trace_number: str = Query(...), db: Session = Depends(get_db)):
-    assignment = db.query(WorkerAssignment).filter_by(trace_number=trace_number).first()
+def delete_assignment(claim_id: int = Query(...), db: Session = Depends(get_db)):
+    assignment = db.query(WorkerAssignment).filter_by(claim_id=claim_id).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
     db.delete(assignment)
     db.commit()
-    return {"message": f"Assignment for trace number {trace_number} deleted"}
+    return {"message": f"Assignment for claim ID {claim_id} deleted"}

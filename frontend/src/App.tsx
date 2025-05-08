@@ -4,7 +4,7 @@ import { useState, ChangeEvent, useRef } from "react";
 import axios from "axios";
 import ClaimTable from "./components/ClaimTable";
 import AddWorkerForm from "./components/AddWorkerForm";
-import AssignTraceForm from "./components/AssignTraceForm";
+import AssignClaimForm from "./components/AssignClaimForm";
 import AssignmentTable from "./components/AssignmentTable";
 
 function App() {
@@ -74,7 +74,7 @@ function App() {
       {/* Worker Management Section */}
       <section style={{ marginBottom: "2rem" }}>
         <AddWorkerForm />
-        <AssignTraceForm />
+        <AssignClaimForm />
         <AssignmentTable />
       </section>
 
