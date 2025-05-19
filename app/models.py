@@ -2,7 +2,8 @@
 
 from sqlalchemy import Column, String, Date, Integer, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
-from datetime import datetime
+from sqlalchemy import DateTime
+from datetime import datetime, timedelta
 
 Base = declarative_base()
 
@@ -33,6 +34,7 @@ class Claim(Base):
     note = Column(String, nullable=True)
     
     work_status = Column(String, nullable=True)
+    follow_up = Column(DateTime, nullable=True)
 
     __table_args__ = (
         UniqueConstraint(

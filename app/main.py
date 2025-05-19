@@ -14,6 +14,8 @@ from .database import SessionLocal, engine
 from .models import Base, Claim, WorkerAssignment, Worker
 from .parser import parse_directory_edi_files
 from .schemas import ClaimOut, WorkerCreate, WorkerOut, WorkerAssignmentCreate, WorkerAssignmentOut, ClaimNoteUpdate, ClaimWorkStatusUpdate
+from datetime import datetime, timedelta
+
 
 app = FastAPI()
 
@@ -87,9 +89,14 @@ def update_claim_work_status(claim_id: int, data: ClaimWorkStatusUpdate, db: Ses
         raise HTTPException(status_code=404, detail="Claim not found")
 
     claim.work_status = data.work_status
+    claim.follow_up = (
+        datetime.utcnow() + timedelta(days=20)
+        if data.work_status.lower() == "appeal done"
+        else None
+    )
+
     db.commit()
     return {"message": "Work status updated"}
-
 
 # Worker Endpoints
 @app.post("/workers", response_model=WorkerOut)
@@ -151,11 +158,11 @@ def get_assignments(db: Session = Depends(get_db)):
     return db.query(WorkerAssignment).all()
 
 @app.delete("/assignments")
-def delete_assignment(claim_id: int = Query(...), db: Session = Depends(get_db)):
-    assignment = db.query(WorkerAssignment).filter_by(claim_id=claim_id).first()
+def delete_assignment(claim_control_number: str = Query(...), db: Session = Depends(get_db)):
+    assignment = db.query(WorkerAssignment).filter_by(claim_control_number=claim_control_number).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
     db.delete(assignment)
     db.commit()
-    return {"message": f"Assignment for claim ID {claim_id} deleted"}
+    return {"message": f"Assignment for claim {claim_control_number} deleted"}

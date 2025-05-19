@@ -26,7 +26,7 @@ class ClaimOut(BaseModel):
     created_at: datetime
     note: Optional[str] = None
     work_status: Optional[str] = None
-
+    follow_up: Optional[datetime] = None
 
     class Config:
         from_attributes = True
