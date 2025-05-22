@@ -81,9 +81,9 @@ function App() {
       {/* Claims Table */}
       <section style={{ marginTop: "2rem" }}>
         <ClaimTable
-          refreshTrigger={refreshTrigger}
-          onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
-        />
+        refreshTrigger={refreshTrigger}
+        onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
+      />  {/* ✅ Pass refresh trigger */}
       </section>
     </div>
   );

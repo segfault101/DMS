@@ -31,7 +31,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
     });
 
     try {
-      await axios.post("http://localhost:8000/upload", formData);
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/upload`, formData);
       alert("Files uploaded and parsed successfully!");
       setFileList([]);
       if (fileInputRef.current) fileInputRef.current.value = "";

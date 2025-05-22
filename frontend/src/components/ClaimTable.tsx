@@ -25,7 +25,7 @@ const ClaimTable: React.FC<ClaimTableProps> = ({ refreshTrigger, onRefresh }) =>
 
   const fetchClaims = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/claims");
+      const res = await axios.get(`http://localhost:8000/claims`);
       setClaims(res.data);
 
       const notesMap: { [id: number]: string } = {};
