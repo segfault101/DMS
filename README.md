@@ -1,7 +1,14 @@
+docker compose up --build
+
+cd frontend <br>
+npm run dev
 
 docker exec -it dms-postgres psql -U postgres -d dms_db
 
- docker compose up --build
+
+
+--------------------------------------------------------------------------------------------------
+
 
 ngrok start --all
 
